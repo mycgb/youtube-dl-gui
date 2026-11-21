@@ -20,6 +20,7 @@ import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
 import tkinter.ttk as ttk
 import urllib.request
+import webbrowser
 
 import youtube_dl_core as core
 
@@ -300,7 +301,7 @@ class App:
         menubar.add_cascade(label="工具", menu=tm)
         hm = tk.Menu(menubar, tearoff=0)
         hm.add_command(label="使用说明", command=self.show_help)
-        hm.add_command(label="关于", command=self.show_help)
+        hm.add_command(label="关于", command=self.show_about)
         menubar.add_cascade(label="帮助", menu=hm)
         root.configure(menu=menubar)
 
@@ -708,6 +709,25 @@ class App:
 6. 「下载封面」：保存视频缩略图。
 7. 「快速下载 360p(含声音)」：使用站点返回的已混流地址，不需要 ffmpeg。
 8. 网络不通时可在设置里切换代理模式；断点续传会保留 .part 文件。""")
+
+    def show_about(self):
+        GITHUB_URL = "https://github.com/mycgb/youtube-dl-gui"
+        win = tk.Toplevel(self.root)
+        win.title("关于")
+        win.resizable(False, False)
+        win.transient(self.root)
+        ttk.Label(win, text=APP_TITLE,
+                  font=("Microsoft YaHei UI", 12, "bold")).pack(padx=24, pady=(18, 6))
+        ttk.Label(win, text="支持多清晰度解析与音视频合成的视频下载工具",
+                  foreground="#6b7280").pack(padx=24)
+        ttk.Label(win, text="项目地址：", foreground="#374151").pack(anchor="w", padx=24, pady=(18, 0))
+        link = tk.Label(win, text=GITHUB_URL, fg="#2563eb", cursor="hand2",
+                        font=("Microsoft YaHei UI", 10, "underline"))
+        link.pack(anchor="w", padx=24, pady=(2, 4))
+        link.bind("<Button-1>", lambda e: webbrowser.open(GITHUB_URL))
+        ttk.Label(win, text="（点击链接可在浏览器中打开）",
+                  foreground="#9ca3af", font=("Microsoft YaHei UI", 9)).pack(anchor="w", padx=24)
+        ttk.Button(win, text="关闭", command=win.destroy).pack(pady=(16, 18), ipadx=12)
 
 
 def main():
