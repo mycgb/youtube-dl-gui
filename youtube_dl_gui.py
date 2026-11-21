@@ -163,8 +163,6 @@ class App:
         head = ttk.Frame(main)
         head.pack(fill="x", pady=(0, 10))
         ttk.Label(head, text=APP_TITLE, style="Title.TLabel").pack(side="left")
-        ttk.Label(head, text="  基于 iiilab 解析接口 · 支持 4K 视频与音频合成",
-                  style="Sub.TLabel").pack(side="left", pady=(8, 0))
 
         # 链接输入
         linkbox = ttk.LabelFrame(main, text=" 视频链接 ", padding=10)
