@@ -157,6 +157,33 @@ def find_ffmpeg():
 # --------------------------------------------------------------------------
 # 解析接口
 # --------------------------------------------------------------------------
+# iiilab 的 extract 接口近期改版，不再返回顶层 title；用 YouTube 官方 oEmbed 补齐。
+OEMBED_API = ("https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com"
+              "%2Fwatch%3Fv%3D{vid}&format=json")
+VIDEO_ID_RE = re.compile(r"(?:v=|\.be/|/shorts/|/embed/|/live/|/v/)([A-Za-z0-9_-]{11})")
+
+
+def _video_id(url, data=None):
+    if data and data.get("id"):
+        return str(data["id"])
+    m = VIDEO_ID_RE.search(url or "")
+    return m.group(1) if m else ""
+
+
+def fetch_title_oembed(url, proxy_mode="system", proxy_url="", data=None, timeout=12):
+    """通过 YouTube 官方 oEmbed 接口获取标题；失败返回空串，不影响解析主流程。"""
+    vid = _video_id(url, data)
+    if not vid:
+        return ""
+    try:
+        req = urllib.request.Request(OEMBED_API.format(vid=vid), headers={"User-Agent": UA})
+        with build_opener(proxy_mode, proxy_url).open(req, timeout=timeout) as resp:
+            obj = json.loads(resp.read().decode("utf-8", "ignore"))
+        return (obj.get("title") or "").strip()
+    except Exception:
+        return ""
+
+
 def extract(url, proxy_mode="system", proxy_url="", timeout=45):
     """
     调用站点解析接口。返回原始 JSON（含 medias/title/author/duration...）。
@@ -196,6 +223,12 @@ def extract(url, proxy_mode="system", proxy_url="", timeout=45):
 
     if not isinstance(data, dict) or not data.get("medias"):
         raise ExtractError(data.get("message", "未获取到视频信息，请检查链接是否正确") if isinstance(data, dict) else "解析结果异常")
+
+    # 接口改版后顶层不再返回 title，用 oEmbed 按视频 ID 补齐（best effort）。
+    if not data.get("title"):
+        title = fetch_title_oembed(url, proxy_mode, proxy_url, data=data)
+        if title:
+            data["title"] = title
     return data
 
 
